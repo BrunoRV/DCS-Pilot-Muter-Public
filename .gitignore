@@ -1,0 +1,43 @@
+# PowerShell
+*~
+*.bak
+*.muter_bak
+
+# DCS Muter specific
+muter_config.json
+
+# Exclude packaged modules
+*.zip
+
+# Test results
+TestResults.xml
+Pester.xml
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Visual Studio
+.vs/
+*.sln
+*.suo
+
+# Other IDEs
+.idea/
+*.swp
+
+# OS generated files
+thumbs.db
+.DS_Store
+
+# Exclude .NET assemblies from source
+*.dll
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
