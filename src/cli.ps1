@@ -3,7 +3,7 @@
 # =====================================================================
 
 function Show-Status {
-    Write-Host "`n=== DCS Player Muter Status ===" -ForegroundColor White
+    Write-Host "`n=== DCS Pilot Muter Status ===" -ForegroundColor White
     
     $speechStatus = Test-HookStatus -FilePath $script:speechFile
     $commonStatus = Test-HookStatus -FilePath $script:commonFile
@@ -36,7 +36,7 @@ function Show-Menu {
     while ($true) {
         Clear-Host
         Write-Host "=======================================" -ForegroundColor Cyan
-        Write-Host "   DCS Player Muter - Console Menu" -ForegroundColor Cyan
+        Write-Host "   DCS Pilot Muter - Console Menu" -ForegroundColor Cyan
         Write-Host "=======================================" -ForegroundColor Cyan
         Show-Status
         

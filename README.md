@@ -1,4 +1,4 @@
-# DCS Player Muter
+# DCS Pilot Muter
 
 A simple PowerShell script to silence the player character's voice in DCS World while maintaining multiplayer Integrity Check passes.
 

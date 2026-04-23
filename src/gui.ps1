@@ -12,7 +12,7 @@ function Show-GUI {
     $colorInputBg = [System.Drawing.SystemColors]::Window
 
     $form = New-Object System.Windows.Forms.Form
-    $form.Text = "DCS Player Muter"
+    $form.Text = "DCS Pilot Muter"
     $form.ClientSize = New-Object System.Drawing.Size(420, 260)
     $form.StartPosition = "CenterScreen"
     $form.FormBorderStyle = "FixedDialog"
@@ -157,76 +157,76 @@ function Show-GUI {
     }
 
     $btnBrowse.Add_Click({
-        $dialog = New-Object System.Windows.Forms.OpenFileDialog
-        $dialog.ValidateNames = $false
-        $dialog.CheckFileExists = $false
-        $dialog.CheckPathExists = $true
-        $dialog.Title = "Select DCS Installation Folder"
-        $dialog.FileName = "Select Folder"
+            $dialog = New-Object System.Windows.Forms.OpenFileDialog
+            $dialog.ValidateNames = $false
+            $dialog.CheckFileExists = $false
+            $dialog.CheckPathExists = $true
+            $dialog.Title = "Select DCS Installation Folder"
+            $dialog.FileName = "Select Folder"
 
-        if (-Not [string]::IsNullOrWhiteSpace($script:DCS_DIR) -and [System.IO.Directory]::Exists($script:DCS_DIR)) {
-            $dialog.InitialDirectory = $script:DCS_DIR
-        }
+            if (-Not [string]::IsNullOrWhiteSpace($script:DCS_DIR) -and [System.IO.Directory]::Exists($script:DCS_DIR)) {
+                $dialog.InitialDirectory = $script:DCS_DIR
+            }
 
-        if ($dialog.ShowDialog() -eq "OK") {
-            Start-Loading
-            $lblMuterStatus.Text = "Loading..."
-            [System.Windows.Forms.Application]::DoEvents()
+            if ($dialog.ShowDialog() -eq "OK") {
+                Start-Loading
+                $lblMuterStatus.Text = "Loading..."
+                [System.Windows.Forms.Application]::DoEvents()
             
-            # The OpenFileDialog returns the path including "Select Folder" dummy string
-            $selectedPath = Split-Path $dialog.FileName -Parent
+                # The OpenFileDialog returns the path including "Select Folder" dummy string
+                $selectedPath = Split-Path $dialog.FileName -Parent
             
-            $script:DCS_DIR = $selectedPath
-            Save-Config -ScriptDir $script:mainDir -PathToSave $script:DCS_DIR
+                $script:DCS_DIR = $selectedPath
+                Save-Config -ScriptDir $script:mainDir -PathToSave $script:DCS_DIR
             
-            $txtPath.Text = $script:DCS_DIR
+                $txtPath.Text = $script:DCS_DIR
             
-            # Simulate a brief delay to ensure the user actually sees the feedback UI
-            Start-Sleep -Milliseconds 250
+                # Simulate a brief delay to ensure the user actually sees the feedback UI
+                Start-Sleep -Milliseconds 250
             
-            Update-UIStatus
-            Stop-Loading
-        }
-    })
+                Update-UIStatus
+                Stop-Loading
+            }
+        })
 
     $btnToggleMuter.Add_Click({
-        $isValidPath = Update-DcsPaths -DcsDir $script:DCS_DIR
-        if (-not $isValidPath) { return }
+            $isValidPath = Update-DcsPaths -DcsDir $script:DCS_DIR
+            if (-not $isValidPath) { return }
 
-        Start-Loading
-        [System.Windows.Forms.Application]::DoEvents()
+            Start-Loading
+            [System.Windows.Forms.Application]::DoEvents()
 
-        $speechStatus = Test-HookStatus -FilePath $script:speechFile
-        $commonStatus = Test-HookStatus -FilePath $script:commonFile
+            $speechStatus = Test-HookStatus -FilePath $script:speechFile
+            $commonStatus = Test-HookStatus -FilePath $script:commonFile
 
-        Start-Sleep -Milliseconds 300
+            Start-Sleep -Milliseconds 300
 
-        if ($speechStatus -eq "Installed" -and $commonStatus -eq "Installed") {
-            Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR | Out-Null
-        }
-        else {
-            Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR | Out-Null
-        }
+            if ($speechStatus -eq "Installed" -and $commonStatus -eq "Installed") {
+                Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR | Out-Null
+            }
+            else {
+                Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR | Out-Null
+            }
         
-        Update-UIStatus
-        Stop-Loading
-    })
+            Update-UIStatus
+            Stop-Loading
+        })
 
     $btnReinstall.Add_Click({
-        $isValidPath = Update-DcsPaths -DcsDir $script:DCS_DIR
-        if (-not $isValidPath) { return }
+            $isValidPath = Update-DcsPaths -DcsDir $script:DCS_DIR
+            if (-not $isValidPath) { return }
 
-        Start-Loading
-        [System.Windows.Forms.Application]::DoEvents()
+            Start-Loading
+            [System.Windows.Forms.Application]::DoEvents()
 
-        Start-Sleep -Milliseconds 300
+            Start-Sleep -Milliseconds 300
 
-        Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR | Out-Null
-        Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR | Out-Null
+            Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR | Out-Null
+            Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR | Out-Null
         
-        Update-UIStatus
-        Stop-Loading
-    })
+            Update-UIStatus
+            Stop-Loading
+        })
 
     $form.Add_Load({ Update-UIStatus })
     $form.ShowDialog() | Out-Null
