@@ -39,6 +39,9 @@ $script:DCS_DIR = Get-Config -ScriptDir $script:mainDir
 
 if (-not [string]::IsNullOrWhiteSpace($DcsPath)) {
     $script:DCS_DIR = $DcsPath
+    if (Update-DcsPaths -DcsDir $script:DCS_DIR) {
+        Save-Config -ScriptDir $script:mainDir -PathToSave $script:DCS_DIR
+    }
 }
 
 # Initialize paths

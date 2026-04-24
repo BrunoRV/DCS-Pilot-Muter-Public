@@ -57,6 +57,35 @@ function Show-GUI {
     $lblMuterStatus.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
     $form.Controls.Add($lblMuterStatus)
 
+    # Links for Lua files (indented)
+    $lnkSpeech = New-Object System.Windows.Forms.LinkLabel
+    $lnkSpeech.Text = "Open speech.lua"
+    $lnkSpeech.Location = New-Object System.Drawing.Point(40, 112)
+    $lnkSpeech.AutoSize = $true
+    $lnkSpeech.Visible = $false
+    $lnkSpeech.LinkColor = [System.Drawing.Color]::Blue
+    $lnkSpeech.Add_LinkClicked({ 
+        if ([System.IO.File]::Exists($script:speechFile)) { 
+            Write-Host "[*] Opening speech.lua: $($script:speechFile)" -ForegroundColor Gray
+            Invoke-Item $script:speechFile 
+        } 
+    })
+    $form.Controls.Add($lnkSpeech)
+
+    $lnkCommon = New-Object System.Windows.Forms.LinkLabel
+    $lnkCommon.Text = "Open common.lua"
+    $lnkCommon.Location = New-Object System.Drawing.Point(160, 112)
+    $lnkCommon.AutoSize = $true
+    $lnkCommon.Visible = $false
+    $lnkCommon.LinkColor = [System.Drawing.Color]::Blue
+    $lnkCommon.Add_LinkClicked({ 
+        if ([System.IO.File]::Exists($script:commonFile)) { 
+            Write-Host "[*] Opening common.lua: $($script:commonFile)" -ForegroundColor Gray
+            Invoke-Item $script:commonFile 
+        } 
+    })
+    $form.Controls.Add($lnkCommon)
+
 
     # Toggle Buttons
     $btnToggleMuter = New-Object System.Windows.Forms.Button
@@ -112,6 +141,8 @@ function Show-GUI {
             
             $btnToggleMuter.Enabled = $false
             $btnReinstall.Enabled = $false
+            $lnkSpeech.Visible = $false
+            $lnkCommon.Visible = $false
             return
         }
 
@@ -154,6 +185,10 @@ function Show-GUI {
         }
 
         $btnToggleMuter.Enabled = $true
+        
+        # Update Link Visibility
+        $lnkSpeech.Visible = [System.IO.File]::Exists($script:speechFile)
+        $lnkCommon.Visible = [System.IO.File]::Exists($script:commonFile)
     }
 
     $btnBrowse.Add_Click({
