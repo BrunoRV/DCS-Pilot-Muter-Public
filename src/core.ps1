@@ -43,7 +43,14 @@ function Invoke-MuterAction {
                 Write-Host "[-] Error: Payload source file missing: $($p.PayloadFile)" -ForegroundColor Red
                 continue
             }
-            $payloadContent = [System.IO.File]::ReadAllText($payloadSource)
+            $rawContent = [System.IO.File]::ReadAllText($payloadSource)
+            # Extract only the block between markers to avoid injecting file metadata/comments
+            if ($rawContent -match "(?s)(-- \[DCS MUTER INJECT START\].*?-- \[DCS MUTER INJECT END\])") {
+                $payloadContent = $Matches[1]
+            } else {
+                $payloadContent = $rawContent
+            }
+            
             if (Install-Hook -FilePath $targetPath -Payload $payloadContent) {
                 $successCount++
             }
