@@ -100,7 +100,9 @@ function Install-Hook {
         Write-Host "[+] Created backup: $(Split-Path $backupPath -Leaf)" -ForegroundColor Green
     }
     
-    [System.IO.File]::AppendAllText($FilePath, $Payload)
+    # Ensure the block is separated by newlines
+    $payloadWithPadding = "`r`n`r`n$Payload`r`n"
+    [System.IO.File]::AppendAllText($FilePath, $payloadWithPadding)
     Write-Host "[+] Successfully injected into $(Split-Path $FilePath -Leaf)" -ForegroundColor Cyan
     return $true
 }
@@ -124,8 +126,8 @@ function Uninstall-Hook {
     }
     
     $content = [System.IO.File]::ReadAllText($FilePath)
-    # Regex to cleanly match our previously injected block
-    $pattern = "(?s)\r?\n?-- \[DCS MUTER INJECT START\].*?-- \[DCS MUTER INJECT END\]\r?\n?"
+    # Regex to cleanly match our previously injected block, including the added newlines
+    $pattern = "(?s)(\r?\n){0,2}-- \[DCS MUTER INJECT START\].*?-- \[DCS MUTER INJECT END\](\r?\n)?"
     $newContent = $content -replace $pattern, ""
     
     [System.IO.File]::WriteAllText($FilePath, $newContent)
