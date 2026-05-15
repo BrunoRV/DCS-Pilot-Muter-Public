@@ -3,29 +3,25 @@
 # =====================================================================
 
 function Show-Status {
+    param([string]$SavedGamesDir)
     Write-Host "`n=== DCS Pilot Muter Status ===" -ForegroundColor White
     
-    $speechStatus = Test-HookStatus -FilePath $script:speechFile
-    $commonStatus = Test-HookStatus -FilePath $script:commonFile
+    $status = Test-HookStatus -SavedGamesDir $SavedGamesDir
     
     $muterStatus = ""
     $colMuter = "White"
 
-    if ($speechStatus -eq "FileNotFound" -or $commonStatus -eq "FileNotFound") {
-        $muterStatus = "DCS Path Not Configured"
+    if ($status -eq "NotConfigured") {
+        $muterStatus = "Saved Games Not Configured"
         $colMuter = "Red"
     }
-    elseif ($speechStatus -eq "Installed" -and $commonStatus -eq "Installed") {
-        $muterStatus = "Installed"
+    elseif ($status -eq "Installed") {
+        $muterStatus = "Installed (Tech Mod)"
         $colMuter = "Green"
     }
-    elseif ($speechStatus -eq "NotInstalled" -and $commonStatus -eq "NotInstalled") {
+    else {
         $muterStatus = "Not Installed"
         $colMuter = "DarkGray"
-    }
-    else {
-        $muterStatus = "Partially Installed"
-        $colMuter = "Yellow"
     }
     
     Write-Host "Muter:          " -NoNewline; Write-Host $muterStatus -ForegroundColor $colMuter
@@ -38,23 +34,23 @@ function Show-Menu {
         Write-Host "=======================================" -ForegroundColor Cyan
         Write-Host "   DCS Pilot Muter - Console Menu" -ForegroundColor Cyan
         Write-Host "=======================================" -ForegroundColor Cyan
-        Show-Status
+        Show-Status -SavedGamesDir $script:SAVED_GAMES_DIR
         
-        Write-Host "1. Install Muter Hooks"
-        Write-Host "2. Uninstall Muter Hooks"
-        Write-Host "3. Reinstall Muter Hooks"
+        Write-Host "1. Install Tech Mod"
+        Write-Host "2. Uninstall Tech Mod"
+        Write-Host "3. Reinstall Tech Mod"
         Write-Host "4. Exit"
         Write-Host ""
         
         $choice = Read-Host "Select an option [1-4]"
         
         switch ($choice) {
-            "1" { Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR | Out-Null }
-            "2" { Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR | Out-Null }
+            "1" { Invoke-MuterAction -Action "Install" -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null }
+            "2" { Invoke-MuterAction -Action "Uninstall" -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null }
             "3" { 
-                Write-Host "[*] Reinstalling hooks..." -ForegroundColor Cyan
-                Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR | Out-Null
-                Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR | Out-Null
+                Write-Host "[*] Reinstalling..." -ForegroundColor Cyan
+                Invoke-MuterAction -Action "Uninstall" -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
+                Invoke-MuterAction -Action "Install" -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
             }
             "4" { exit }
             default { Write-Host "Invalid selection." -ForegroundColor Red; Start-Sleep -Seconds 1 }

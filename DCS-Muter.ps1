@@ -7,9 +7,7 @@ param(
     [switch]$Uninstall,
     [switch]$Reinstall,
     [switch]$Status,
-    [switch]$Menu,
-    [string]$DcsPath
-
+    [switch]$Menu
 )
 
 $scriptPath = $MyInvocation.MyCommand.Path
@@ -35,42 +33,44 @@ if (-not [System.IO.Directory]::Exists($srcDir)) {
 . (Join-Path $srcDir "cli.ps1")
 . (Join-Path $srcDir "gui.ps1")
 
-$script:DCS_DIR = Get-Config -ScriptDir $script:mainDir
+$config = Get-Config -ScriptDir $script:mainDir
+$script:SAVED_GAMES_DIR = $config.SavedGamesPath
 
-if (-not [string]::IsNullOrWhiteSpace($DcsPath)) {
-    $script:DCS_DIR = $DcsPath
-    if (Update-DcsPaths -DcsDir $script:DCS_DIR) {
-        Save-Config -ScriptDir $script:mainDir -PathToSave $script:DCS_DIR
-    }
+if ([string]::IsNullOrWhiteSpace($script:SAVED_GAMES_DIR)) {
+    $script:SAVED_GAMES_DIR = Get-DefaultSavedGamesPath
+}
+
+# Auto-save if we found paths
+if (-not [string]::IsNullOrWhiteSpace($script:SAVED_GAMES_DIR)) {
+    Save-Config -ScriptDir $script:mainDir -SavedGamesPath $script:SAVED_GAMES_DIR
 }
 
 # Initialize paths
-Update-DcsPaths -DcsDir $script:DCS_DIR | Out-Null
+Update-DcsPaths -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
 
 # --- CLI Execution Logic ---
 
 if ($Install -or $Uninstall -or $Reinstall -or $Status -or $Menu) {
-    if ([string]::IsNullOrWhiteSpace($script:commonFile) -and [string]::IsNullOrWhiteSpace($script:speechFile)) {
-        Write-Host "`n[-] Error: DCS installation not found or not configured." -ForegroundColor Red
-        Write-Host "[*] Use -DcsPath to specify your DCS folder or run without arguments to use the GUI.`n" -ForegroundColor Yellow
+    if ([string]::IsNullOrWhiteSpace($script:SAVED_GAMES_DIR)) {
+        Write-Host "`n[-] Error: Saved Games folder not found or not configured." -ForegroundColor Red
         exit 1
     }
 }
 
 if ($Install) {
-    Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR | Out-Null
+    Invoke-MuterAction -Action "Install" -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
 }
 elseif ($Uninstall) {
-    Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR | Out-Null
+    Invoke-MuterAction -Action "Uninstall" -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
 }
 elseif ($Reinstall) {
     Write-Host "[*] Reinstalling hooks..." -ForegroundColor Cyan
-    Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR | Out-Null
-    Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR | Out-Null
+    Invoke-MuterAction -Action "Uninstall" -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
+    Invoke-MuterAction -Action "Install" -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
     Write-Host "[+] Reinstallation complete." -ForegroundColor Green
 }
 elseif ($Status) {
-    Show-Status
+    Show-Status -SavedGamesDir $script:SAVED_GAMES_DIR
 }
 elseif ($Menu) {
     Show-Menu

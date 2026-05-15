@@ -2,21 +2,6 @@
 # DCS Player Voice Muter - Core Hook Logic
 # =====================================================================
 
-function Get-PayloadDefinitions {
-    # Define all payloads here for easy extensibility
-    return @(
-        @{
-            Name        = "Common"
-            TargetRel   = "Scripts\Speech\common.lua"
-            PayloadFile = "common.lua"
-        },
-        @{
-            Name        = "Speech"
-            TargetRel   = "Scripts\Speech\speech.lua"
-            PayloadFile = "speech.lua"
-        }
-    )
-}
 
 function Invoke-MuterAction {
     param(
@@ -25,112 +10,60 @@ function Invoke-MuterAction {
         [string]$Action,
         
         [Parameter(Mandatory=$true)]
-        [string]$DcsDir
+        [string]$SavedGamesDir
     )
 
-    $payloads = Get-PayloadDefinitions
-    $srcPayloadDir = Join-Path $script:mainDir "src\payloads"
+    $srcModDir = Join-Path $script:mainDir "src\mod"
     
-    $successCount = 0
-    $totalCount = $payloads.Count
-
-    foreach ($p in $payloads) {
-        $targetPath = Join-Path $DcsDir $p.TargetRel
-        $payloadSource = Join-Path $srcPayloadDir $p.PayloadFile
-
-        if ($Action -eq "Install") {
-            if (-Not [System.IO.File]::Exists($payloadSource)) {
-                Write-Host "[-] Error: Payload source file missing: $($p.PayloadFile)" -ForegroundColor Red
-                continue
-            }
-            $rawContent = [System.IO.File]::ReadAllText($payloadSource)
-            # Extract only the block between markers to avoid injecting file metadata/comments
-            if ($rawContent -match "(?s)(-- \[DCS MUTER INJECT START\].*?-- \[DCS MUTER INJECT END\])") {
-                $payloadContent = $Matches[1]
-            } else {
-                $payloadContent = $rawContent
-            }
-            
-            if (Install-Hook -FilePath $targetPath -Payload $payloadContent) {
-                $successCount++
-            }
+    if ($Action -eq "Install") {
+        if (-not [System.IO.Directory]::Exists($SavedGamesDir)) {
+            Write-Host "[-] Error: Saved Games directory not found: $SavedGamesDir" -ForegroundColor Red
+            return $false
         }
-        else {
-            if (Uninstall-Hook -FilePath $targetPath) {
-                $successCount++
-            }
-        }
+
+        # 1. Create directory structure
+        $targetModDir = Join-Path $SavedGamesDir "Mods\tech\DCS-Muter"
+        $targetHooksDir = Join-Path $SavedGamesDir "Scripts\Hooks"
+        
+        New-Item -Path $targetModDir -ItemType Directory -Force | Out-Null
+        New-Item -Path (Join-Path $targetModDir "Scripts") -ItemType Directory -Force | Out-Null
+        New-Item -Path $targetHooksDir -ItemType Directory -Force | Out-Null
+
+        # 2. Copy Mod files
+        Copy-Item -Path (Join-Path $srcModDir "entry.lua") -Destination $targetModDir -Force
+        Copy-Item -Path (Join-Path $srcModDir "Scripts\MuterPayload.lua") -Destination (Join-Path $targetModDir "Scripts") -Force
+        Copy-Item -Path (Join-Path $srcModDir "Hooks\MuterHook.lua") -Destination $targetHooksDir -Force -PassThru | Rename-Item -NewName "DCS-Muter-Hook.lua" -Force
+
+        Write-Host "[+] Successfully installed Tech Mod to Saved Games." -ForegroundColor Cyan
+        return $true
     }
+    else {
+        # Uninstall
+        $targetModDir = Join-Path $SavedGamesDir "Mods\tech\DCS-Muter"
+        $targetHookFile = Join-Path $SavedGamesDir "Scripts\Hooks\DCS-Muter-Hook.lua"
 
-    return ($successCount -eq $totalCount)
+        if ([System.IO.Directory]::Exists($targetModDir)) {
+            Remove-Item -Path $targetModDir -Recurse -Force
+            Write-Host "[+] Removed Tech Mod from Saved Games." -ForegroundColor Cyan
+        }
+        if ([System.IO.File]::Exists($targetHookFile)) {
+            Remove-Item -Path $targetHookFile -Force
+            Write-Host "[+] Removed Hook from Saved Games." -ForegroundColor Cyan
+        }
+
+        return $true
+    }
 }
+
 
 function Test-HookStatus {
-    param([string]$FilePath)
-    if ([string]::IsNullOrWhiteSpace($FilePath) -or -Not [System.IO.File]::Exists($FilePath)) { return "FileNotFound" }
+    param([string]$SavedGamesDir)
+    if ([string]::IsNullOrWhiteSpace($SavedGamesDir)) { return "NotConfigured" }
     
-    # Fast Native .NET I/O to avoid GUI sluggishness
-    $content = [System.IO.File]::ReadAllText($FilePath)
-    if ($content.Contains("[DCS MUTER INJECT START]")) { return "Installed" }
+    $hookFile = Join-Path $SavedGamesDir "Scripts\Hooks\DCS-Muter-Hook.lua"
+    if ([System.IO.File]::Exists($hookFile)) {
+        return "Installed"
+    }
     
     return "NotInstalled"
-}
-
-function Install-Hook {
-    param([string]$FilePath, [string]$Payload)
-    
-    if ([string]::IsNullOrWhiteSpace($FilePath)) {
-        Write-Host "[-] Error: No target file specified for installation." -ForegroundColor Red
-        return $false
-    }
-
-    $status = Test-HookStatus -FilePath $FilePath
-    if ($status -eq "FileNotFound") {
-        Write-Host "[-] Error: $(Split-Path $FilePath -Leaf) missing!" -ForegroundColor Red
-        return $false
-    }
-    if ($status -eq "Installed") {
-        Write-Host "[~] Payload already present in $(Split-Path $FilePath -Leaf). Skipping." -ForegroundColor DarkGray
-        return $true
-    }
-    
-    $backupPath = "$FilePath.muter_bak"
-    if (-Not [System.IO.File]::Exists($backupPath)) {
-        Copy-Item -Path $FilePath -Destination $backupPath
-        Write-Host "[+] Created backup: $(Split-Path $backupPath -Leaf)" -ForegroundColor Green
-    }
-    
-    # Ensure the block is separated by newlines
-    $payloadWithPadding = "`r`n`r`n$Payload`r`n"
-    [System.IO.File]::AppendAllText($FilePath, $payloadWithPadding)
-    Write-Host "[+] Successfully injected into $(Split-Path $FilePath -Leaf)" -ForegroundColor Cyan
-    return $true
-}
-
-function Uninstall-Hook {
-    param([string]$FilePath)
-    
-    if ([string]::IsNullOrWhiteSpace($FilePath)) {
-        Write-Host "[-] Error: No target file specified for uninstallation." -ForegroundColor Red
-        return $false
-    }
-
-    $status = Test-HookStatus -FilePath $FilePath
-    if ($status -eq "FileNotFound") {
-        Write-Host "[-] Error: $(Split-Path $FilePath -Leaf) missing!" -ForegroundColor Red
-        return $false
-    }
-    if ($status -eq "NotInstalled") {
-        Write-Host "[~] No payload found in $(Split-Path $FilePath -Leaf). Skipping." -ForegroundColor DarkGray
-        return $true
-    }
-    
-    $content = [System.IO.File]::ReadAllText($FilePath)
-    # Regex to cleanly match our previously injected block, including the added newlines
-    $pattern = "(?s)(\r?\n){0,2}-- \[DCS MUTER INJECT START\].*?-- \[DCS MUTER INJECT END\](\r?\n)?"
-    $newContent = $content -replace $pattern, ""
-    
-    [System.IO.File]::WriteAllText($FilePath, $newContent)
-    Write-Host "[+] Successfully removed payload from $(Split-Path $FilePath -Leaf)" -ForegroundColor Cyan
-    return $true
 }

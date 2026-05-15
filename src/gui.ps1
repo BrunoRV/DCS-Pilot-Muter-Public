@@ -13,7 +13,7 @@ function Show-GUI {
 
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "DCS Pilot Muter"
-    $form.ClientSize = New-Object System.Drawing.Size(420, 260)
+    $form.ClientSize = New-Object System.Drawing.Size(420, 200)
     $form.StartPosition = "CenterScreen"
     $form.FormBorderStyle = "FixedDialog"
     $form.MaximizeBox = $false
@@ -21,96 +21,61 @@ function Show-GUI {
     $form.ForeColor = $colorFg
     $form.Font = New-Object System.Drawing.Font("Segoe UI", 9.5)
 
-    # Path Label
-    $lblPath = New-Object System.Windows.Forms.Label
-    $lblPath.Text = "DCS Folder Path:"
-    $lblPath.Location = New-Object System.Drawing.Point(20, 20)
-    $lblPath.AutoSize = $true
-    $form.Controls.Add($lblPath)
+    # --- Saved Games Section ---
+    $lblSG = New-Object System.Windows.Forms.Label
+    $lblSG.Text = "Saved Games Folder:"
+    $lblSG.Location = New-Object System.Drawing.Point(20, 15)
+    $lblSG.AutoSize = $true
+    $form.Controls.Add($lblSG)
 
-    # Path TextBox
-    $txtPath = New-Object System.Windows.Forms.TextBox
-    $txtPath.Text = $script:DCS_DIR
-    $txtPath.Location = New-Object System.Drawing.Point(20, 45)
-    $txtPath.Size = New-Object System.Drawing.Size(280, 23)
-    $txtPath.ReadOnly = $true
-    $txtPath.BackColor = $colorInputBg
-    $txtPath.ForeColor = $colorFg
-    $txtPath.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-    $form.Controls.Add($txtPath)
+    $txtSG = New-Object System.Windows.Forms.TextBox
+    $txtSG.Text = $script:SAVED_GAMES_DIR
+    $txtSG.Location = New-Object System.Drawing.Point(20, 37)
+    $txtSG.Size = New-Object System.Drawing.Size(280, 23)
+    $txtSG.ReadOnly = $true
+    $txtSG.BackColor = $colorInputBg
+    $txtSG.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+    $form.Controls.Add($txtSG)
 
-    # Browse Button
-    $btnBrowse = New-Object System.Windows.Forms.Button
-    $btnBrowse.Text = "Browse..."
-    $btnBrowse.Location = New-Object System.Drawing.Point(310, 44)
-    $btnBrowse.Size = New-Object System.Drawing.Size(80, 25)
-    $btnBrowse.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-    $btnBrowse.FlatAppearance.BorderColor = [System.Drawing.Color]::Gray
-    $btnBrowse.BackColor = $colorInputBg
-    $form.Controls.Add($btnBrowse)
+    $btnBrowseSG = New-Object System.Windows.Forms.Button
+    $btnBrowseSG.Text = "Browse..."
+    $btnBrowseSG.Location = New-Object System.Drawing.Point(310, 36)
+    $btnBrowseSG.Size = New-Object System.Drawing.Size(80, 25)
+    $btnBrowseSG.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $btnBrowseSG.BackColor = $colorInputBg
+    $form.Controls.Add($btnBrowseSG)
 
-    # Status Group
+
+    # Status Label
     $lblMuterStatus = New-Object System.Windows.Forms.Label
     $lblMuterStatus.Text = "Muter: Checking..."
-    $lblMuterStatus.Location = New-Object System.Drawing.Point(20, 90)
+    $lblMuterStatus.Location = New-Object System.Drawing.Point(20, 80)
     $lblMuterStatus.Size = New-Object System.Drawing.Size(380, 20)
     $lblMuterStatus.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
     $form.Controls.Add($lblMuterStatus)
 
-    # Links for Lua files (indented)
-    $lnkSpeech = New-Object System.Windows.Forms.LinkLabel
-    $lnkSpeech.Text = "Open speech.lua"
-    $lnkSpeech.Location = New-Object System.Drawing.Point(40, 112)
-    $lnkSpeech.AutoSize = $true
-    $lnkSpeech.Visible = $false
-    $lnkSpeech.LinkColor = [System.Drawing.Color]::Blue
-    $lnkSpeech.Add_LinkClicked({ 
-        if ([System.IO.File]::Exists($script:speechFile)) { 
-            Write-Host "[*] Opening speech.lua: $($script:speechFile)" -ForegroundColor Gray
-            Invoke-Item $script:speechFile 
-        } 
-    })
-    $form.Controls.Add($lnkSpeech)
-
-    $lnkCommon = New-Object System.Windows.Forms.LinkLabel
-    $lnkCommon.Text = "Open common.lua"
-    $lnkCommon.Location = New-Object System.Drawing.Point(160, 112)
-    $lnkCommon.AutoSize = $true
-    $lnkCommon.Visible = $false
-    $lnkCommon.LinkColor = [System.Drawing.Color]::Blue
-    $lnkCommon.Add_LinkClicked({ 
-        if ([System.IO.File]::Exists($script:commonFile)) { 
-            Write-Host "[*] Opening common.lua: $($script:commonFile)" -ForegroundColor Gray
-            Invoke-Item $script:commonFile 
-        } 
-    })
-    $form.Controls.Add($lnkCommon)
-
-
     # Toggle Buttons
     $btnToggleMuter = New-Object System.Windows.Forms.Button
     $btnToggleMuter.Text = "Install Muter"
-    $btnToggleMuter.Location = New-Object System.Drawing.Point(20, 160)
+    $btnToggleMuter.Location = New-Object System.Drawing.Point(20, 120)
     $btnToggleMuter.Size = New-Object System.Drawing.Size(180, 45)
     $btnToggleMuter.Enabled = $false
     $btnToggleMuter.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
     $btnToggleMuter.FlatAppearance.BorderSize = 0
     $form.Controls.Add($btnToggleMuter)
 
-    # Reinstall Button
     $btnReinstall = New-Object System.Windows.Forms.Button
     $btnReinstall.Text = "Reinstall"
-    $btnReinstall.Location = New-Object System.Drawing.Point(220, 160)
+    $btnReinstall.Location = New-Object System.Drawing.Point(220, 120)
     $btnReinstall.Size = New-Object System.Drawing.Size(180, 45)
     $btnReinstall.Enabled = $false
     $btnReinstall.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
     $btnReinstall.FlatAppearance.BorderSize = 0
     $form.Controls.Add($btnReinstall)
 
-
     # Loading Element
     $progressBar = New-Object System.Windows.Forms.ProgressBar
-    $progressBar.Location = New-Object System.Drawing.Point(30, 230)
+    $progressBar.Location = New-Object System.Drawing.Point(30, 180)
     $progressBar.Size = New-Object System.Drawing.Size(360, 5)
     $progressBar.Style = [System.Windows.Forms.ProgressBarStyle]::Marquee
     $progressBar.Visible = $false
@@ -119,146 +84,91 @@ function Show-GUI {
     function Start-Loading {
         $btnToggleMuter.Enabled = $false
         $btnReinstall.Enabled = $false
-        $btnBrowse.Enabled = $false
+        $btnBrowseSG.Enabled = $false
         $progressBar.Visible = $true
         [System.Windows.Forms.Application]::DoEvents()
     }
 
     function Stop-Loading {
-        $btnBrowse.Enabled = $true
+        $btnBrowseSG.Enabled = $true
         $progressBar.Visible = $false
         [System.Windows.Forms.Application]::DoEvents()
     }
 
     function Update-UIStatus {
-        $isValidPath = Update-DcsPaths -DcsDir $script:DCS_DIR
+        $status = Test-HookStatus -SavedGamesDir $script:SAVED_GAMES_DIR
         
-        if (-not $isValidPath) {
-            $errorMsg = if ([string]::IsNullOrWhiteSpace($script:DCS_DIR)) { "No directory selected." } else { "Invalid DCS Directory." }
-            $lblMuterStatus.Text = "Muter: " + $errorMsg
-            
+        if ($status -eq "NotConfigured") {
+            $lblMuterStatus.Text = "Muter: Saved Games not found."
             $lblMuterStatus.ForeColor = [System.Drawing.Color]::DarkRed
-            
             $btnToggleMuter.Enabled = $false
             $btnReinstall.Enabled = $false
-            $lnkSpeech.Visible = $false
-            $lnkCommon.Visible = $false
             return
         }
 
-        $speechStatus = Test-HookStatus -FilePath $script:speechFile
-        $commonStatus = Test-HookStatus -FilePath $script:commonFile
-        
-        # Update Muter Status
-        if ($speechStatus -eq "Installed" -and $commonStatus -eq "Installed") {
-            $lblMuterStatus.Text = "Muter: Installed"
+        if ($status -eq "Installed") {
+            $lblMuterStatus.Text = "Muter: Installed (Tech Mod)"
             $lblMuterStatus.ForeColor = [System.Drawing.Color]::DarkGreen
             $btnToggleMuter.Text = "Uninstall Muter"
             $btnToggleMuter.BackColor = [System.Drawing.Color]::IndianRed
             $btnToggleMuter.ForeColor = [System.Drawing.Color]::White
+            $btnReinstall.Enabled = $true
+            $btnReinstall.BackColor = [System.Drawing.Color]::CornflowerBlue
         }
-        elseif ($speechStatus -eq "NotInstalled" -and $commonStatus -eq "NotInstalled") {
+        else {
             $lblMuterStatus.Text = "Muter: Not Installed"
             $lblMuterStatus.ForeColor = [System.Drawing.Color]::DarkRed
             $btnToggleMuter.Text = "Install Muter"
             $btnToggleMuter.BackColor = [System.Drawing.Color]::MediumSeaGreen
             $btnToggleMuter.ForeColor = [System.Drawing.Color]::White
-        }
-        else {
-            $lblMuterStatus.Text = "Muter: Partially Installed (Fix Needed)"
-            $lblMuterStatus.ForeColor = [System.Drawing.Color]::OrangeRed
-            $btnToggleMuter.Text = "Fix Muter"
-            $btnToggleMuter.BackColor = [System.Drawing.Color]::MediumSeaGreen
-            $btnToggleMuter.ForeColor = [System.Drawing.Color]::White
-        }
-
-        # Update Reinstall Button
-        if ($speechStatus -eq "Installed" -or $commonStatus -eq "Installed") {
-            $btnReinstall.BackColor = [System.Drawing.Color]::CornflowerBlue
-            $btnReinstall.ForeColor = [System.Drawing.Color]::White
-            $btnReinstall.Enabled = $true
-        }
-        else {
-            $btnReinstall.BackColor = [System.Drawing.Color]::DarkGray
-            $btnReinstall.ForeColor = [System.Drawing.Color]::White
             $btnReinstall.Enabled = $false
+            $btnReinstall.BackColor = [System.Drawing.Color]::DarkGray
         }
 
         $btnToggleMuter.Enabled = $true
-        
-        # Update Link Visibility
-        $lnkSpeech.Visible = [System.IO.File]::Exists($script:speechFile)
-        $lnkCommon.Visible = [System.IO.File]::Exists($script:commonFile)
     }
 
-    $btnBrowse.Add_Click({
-            $dialog = New-Object System.Windows.Forms.OpenFileDialog
-            $dialog.ValidateNames = $false
-            $dialog.CheckFileExists = $false
-            $dialog.CheckPathExists = $true
-            $dialog.Title = "Select DCS Installation Folder"
-            $dialog.FileName = "Select Folder"
-
-            if (-Not [string]::IsNullOrWhiteSpace($script:DCS_DIR) -and [System.IO.Directory]::Exists($script:DCS_DIR)) {
-                $dialog.InitialDirectory = $script:DCS_DIR
-            }
-
+    $btnBrowseSG.Add_Click({
+            $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+            $dialog.Description = "Select your DCS Saved Games folder (e.g., %USERPROFILE%\Saved Games\DCS)"
             if ($dialog.ShowDialog() -eq "OK") {
-                Start-Loading
-                $lblMuterStatus.Text = "Loading..."
-                [System.Windows.Forms.Application]::DoEvents()
-            
-                # The OpenFileDialog returns the path including "Select Folder" dummy string
-                $selectedPath = Split-Path $dialog.FileName -Parent
-            
-                $script:DCS_DIR = $selectedPath
-                Save-Config -ScriptDir $script:mainDir -PathToSave $script:DCS_DIR
-            
-                $txtPath.Text = $script:DCS_DIR
-            
-                # Simulate a brief delay to ensure the user actually sees the feedback UI
-                Start-Sleep -Milliseconds 250
-            
+                $script:SAVED_GAMES_DIR = $dialog.SelectedPath
+                $txtSG.Text = $script:SAVED_GAMES_DIR
+                Save-Config -ScriptDir $script:mainDir -DcsPath $script:DCS_DIR -SavedGamesPath $script:SAVED_GAMES_DIR
                 Update-UIStatus
-                Stop-Loading
+            }
+        })
+
+    $btnBrowseDCS.Add_Click({
+            $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+            $dialog.Description = "Select your DCS Installation folder (Optional)"
+            if ($dialog.ShowDialog() -eq "OK") {
+                $script:DCS_DIR = $dialog.SelectedPath
+                $txtDCS.Text = $script:DCS_DIR
+                Save-Config -ScriptDir $script:mainDir -DcsPath $script:DCS_DIR -SavedGamesPath $script:SAVED_GAMES_DIR
+                Update-UIStatus
             }
         })
 
     $btnToggleMuter.Add_Click({
-            $isValidPath = Update-DcsPaths -DcsDir $script:DCS_DIR
-            if (-not $isValidPath) { return }
-
             Start-Loading
-            [System.Windows.Forms.Application]::DoEvents()
-
-            $speechStatus = Test-HookStatus -FilePath $script:speechFile
-            $commonStatus = Test-HookStatus -FilePath $script:commonFile
-
+            $status = Test-HookStatus -SavedGamesDir $script:SAVED_GAMES_DIR
             Start-Sleep -Milliseconds 300
-
-            if ($speechStatus -eq "Installed" -and $commonStatus -eq "Installed") {
-                Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR | Out-Null
+            if ($status -eq "Installed") {
+                Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
             }
             else {
-                Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR | Out-Null
+                Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
             }
-        
             Update-UIStatus
             Stop-Loading
         })
 
     $btnReinstall.Add_Click({
-            $isValidPath = Update-DcsPaths -DcsDir $script:DCS_DIR
-            if (-not $isValidPath) { return }
-
             Start-Loading
-            [System.Windows.Forms.Application]::DoEvents()
-
             Start-Sleep -Milliseconds 300
-
-            Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR | Out-Null
-            Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR | Out-Null
-        
+            Invoke-MuterAction -Action "Uninstall" -DcsDir $script:DCS_DIR -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
+            Invoke-MuterAction -Action "Install" -DcsDir $script:DCS_DIR -SavedGamesDir $script:SAVED_GAMES_DIR | Out-Null
             Update-UIStatus
             Stop-Loading
         })

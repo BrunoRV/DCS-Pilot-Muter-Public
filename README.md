@@ -1,40 +1,28 @@
 # DCS Pilot Muter
 
-A simple PowerShell script to silence the player character's voice in DCS World while maintaining multiplayer Integrity Check passes.
+A simple PowerShell script to silence the player character's voice in DCS World using a non-invasive Tech Mod approach.
+
+## Why this method?
+Previously, this script injected code directly into core DCS files. The new version uses a **DCS Tech Mod** and **Hook** system which:
+- **Never modifies original DCS files**: No more backups or file corruption.
+- **Survives Updates**: Won't be deleted when DCS updates or runs a repair.
+- **Passes Integrity Checks**: Safe for use on servers that enforce strict file integrity.
 
 ## Usage
 
-Run the script without parameters to natively launch the interactive Graphical User Interface (GUI):
+Run the script without parameters to launch the GUI:
 ```powershell
-.\DCS-Muter.ps1 -DcsPath "C:\Path\To\DCS"
+.\DCS-Muter.ps1
 ```
 
 ### CLI Parameters
-
-You can also use command-line parameters for quick execution or console fallback:
-- `-Menu`: Opens the traditional interactive console menu interface without the GUI.
-- `-Install`: Injects the muter hooks.
-- `-Uninstall`: Removes the hooks.
+- `-Install`: Installs the Tech Mod and Hook to your Saved Games folder.
+- `-Uninstall`: Removes the mod and hook.
 - `-Status`: Displays the current installation status.
-- `-DcsPath "C:\Path\To\DCS"`: Specifies a custom DCS World path (overrides saved config). If not provided, it will try to find the path automatically or use the last saved path.
-
-### Example
-```powershell
-.\DCS-Muter.ps1 -Install -DcsPath "C:\SteamLibrary\steamapps\common\DCSWorld"
-```
 
 ## Manual Installation
-
-If you prefer to install the hooks manually, append the contents of the payload files (located in the `src/payloads/` directory) to the end of the corresponding files in your DCS World installation.
-
-### 1. Speech Core Hooks
-- **DCS File:** `[DCS Path]\Scripts\Speech\common.lua`
-- **Payload Source:** `src/payloads/common.lua`
-
-### 2. Radio Event Hooks
-- **DCS File:** `[DCS Path]\Scripts\Speech\speech.lua`
-- **Payload Source:** `src/payloads/speech.lua`
+1. Copy the contents of `src/mod` to `%USERPROFILE%\Saved Games\DCS\Mods\tech\DCS-Muter`.
+2. Copy `src/mod/Hooks/MuterHook.lua` to `%USERPROFILE%\Saved Games\DCS\Scripts\Hooks\DCS-Muter-Hook.lua`.
 
 ## License
-
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
